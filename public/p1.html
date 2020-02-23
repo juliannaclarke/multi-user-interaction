@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="/socket.io/socket.io.js"></script>
+        <script src = "https://aframe.io/releases/1.0.3/aframe.min.js"></script>
+        <script src = "js/p1-collect-dot.js"></script>
+        <!-- <script src = "js/position-reader.js"></script> -->
+        <script src="https://unpkg.com/aframe-environment-component@1.1.0/dist/aframe-environment-component.min.js"></script>
+    </head>
+    <body>
+        <a-scene scoreUpdate>
+            <a-assets>
+                <a-sound id="boop" src="assets/sounds/Blop.mp3" preload="auto"></a-sound>
+                <a-sound id="swoosh" src="assets/sounds/Swooshing.mp3" preload="auto"></a-sound>
+            </a-assets>
+
+            <a-entity id = "camera" camera look-controls wasd-controls position="0 1.3 2" position-reader="">
+                <a-entity   id = 'cursor;'
+                            cursor="rayOrigin:mouse;"
+                            raycaster="far:20; interval:100; objects:.clickable">
+                            
+                </a-entity>
+                <a-entity id="score" text="value: Score: 0" position="1.5 0.5 -1"></a-entity>
+            </a-entity>
+
+            <a-entity   id = "fight"
+                        class = "clickable"
+                        geometry = "primitive:cylinder; height:0.1; radius:0.3;"
+                        position = "-1 0 -1"
+                        material = "color:#99d394"
+                        sound = "src: #swoosh; on: click;"
+                        collect-dot = ""></a-entity>
+
+            
+
+            <a-entity environment="preset:yavapai" ground = "hills:none"></a-entity>
+
+            <script>
+                let socket = io();
+
+                for (i=0; i<10; i+=1){
+                    let dot = document.createElement('a-entity');
+                    dot.setAttribute('class','clickable');
+                    dot.setAttribute('id','#p1Dot');
+                    dot.setAttribute('geometry', {primitive:'cylinder', height: '0.1', radius:'0.3'});
+                    dot.setAttribute('material', {color:'#9400d3'});
+                    dot.setAttribute('sound',{src: '#boop', on: 'click'});
+                    dot.setAttribute('p1-collect-dot','');
+
+                    dot.setAttribute('position',{x:((Math.random()*16.0) - 8.0), y:0, z:((Math.random()*16.0) - 8.0)});
+
+                    //add to scene
+                    let scene = document.querySelector('a-scene');
+                    scene.appendChild(dot);
+                }
+
+                
+                socket.on('connect',function(){
+                    console.log('I am connected' + socket.id);
+                });
+
+                document.querySelector('#fight').addEventListener('click',function(){
+                    console.log('fight player 2!');
+                    socket.emit('fight_event');
+                });
+
+                document.querySelector('#p1Dot').addEventListener('click',function(){
+                    console.log('collected');
+                    socket.emit('p1_score_increase');
+                });
+
+
+            </script>
+        </a-scene>
+
+    </body>
+</html>
